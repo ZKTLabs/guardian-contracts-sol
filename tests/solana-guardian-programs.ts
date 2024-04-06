@@ -2,7 +2,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { SolanaGuardianPrograms } from "../target/types/solana_guardian_programs";
 
-describe("zkt-guardian-programs", () => {
+describe("guardian-programs", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
