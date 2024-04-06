@@ -1,6 +1,7 @@
 pub mod instructions;
 pub mod state;
 pub mod error;
+pub mod utils;
 
 use anchor_lang::prelude::*;
 
@@ -9,20 +10,8 @@ declare_id!("EFi3XHwSt8gkMP8DpMdF719YNtZYAqmazcn2gYWCWg7K");
 use state::*;
 use instructions::*;
 
-macro_rules! impl_execute_proposal {
-    ($num:tt) => {
-        paste::paste! {
-            pub fn [<execute_proposal_ $num>](
-                ctx: Context<[<ExecuteProposal $num>]>,
-            ) -> Result<()> {
-                [<_execute_proposal_ $num>](ctx)
-            }
-        }
-    }
-}
-
 #[program]
-pub mod guardian_programs {
+pub mod guardian_program {
     use super::*;
 
     pub fn init_access_registry(ctx: Context<InitAccessRegistry>) -> Result<()> {
@@ -51,6 +40,18 @@ pub mod guardian_programs {
 
     pub fn reject_expired_proposal(ctx: Context<RejectExpiredProposal>) -> Result<()> {
         _reject_expired_proposal(ctx)
+    }
+
+    macro_rules! impl_execute_proposal {
+        ($num:tt) => {
+            paste::paste! {
+                pub fn [<execute_proposal_ $num>](
+                    ctx: Context<[<ExecuteProposal $num>]>,
+                ) -> Result<()> {
+                    [<_execute_proposal_ $num>](ctx)
+                }
+            }
+        }
     }
 
     impl_execute_proposal!(1);

@@ -12,6 +12,17 @@ pub enum ProposalStatus {
     Rejected,
 }
 
+impl std::fmt::Display for ProposalStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let std = match self {
+            Self::Pending => "pending",
+            Self::Approved => "approved",
+            Self::Rejected => "rejected",
+        };
+        write!(f, "{}", std)
+    }
+}
+
 #[account]
 pub struct ProposalRegistry {
     pub access_registry: Pubkey,
@@ -21,7 +32,7 @@ pub struct ProposalRegistry {
 }
 
 impl ProposalRegistry {
-    pub const SIZE: usize = core::mem::size_of::<Self>();
+    pub const SIZE: usize = std::mem::size_of::<Self>();
 }
 
 #[account]
@@ -51,9 +62,11 @@ impl Proposal {
         clock: &Clock,
         guardians: u32,
     ) -> Result<Self> {
-        if target_accounts.len() > MAX_TARGET_ACCOUNTS {
-            return Err(ZktGuardianError::TooManyTargetAccounts.into());
-        }
+        require_gte!(
+            MAX_TARGET_ACCOUNTS,
+            target_accounts.len(),
+            ZktGuardianError::TooManyTargetAccounts,
+        );
         registry.pending += 1;
         
         Ok(Self {
@@ -70,9 +83,7 @@ impl Proposal {
     }
 
     pub(crate) fn vote(&mut self, registry: &mut ProposalRegistry) -> Result<()> {
-        if self.status != ProposalStatus::Pending {
-            return Err(ZktGuardianError::OnlyPendingProposal.into());
-        }
+        require_eq!(self.status, ProposalStatus::Pending, ZktGuardianError::OnlyPendingProposal);
 
         self.voters += 1;
         if self.voters * 2 > self.guardians {
@@ -89,16 +100,15 @@ impl Proposal {
         clock: &Clock,
         registry: &mut ProposalRegistry,
     ) -> Result<()> {
-        if self.status != ProposalStatus::Pending {
-            return Err(ZktGuardianError::OnlyPendingProposal.into());
-        }
-
-        if self.timestamp + EXPIRE_DAYS >= clock.unix_timestamp {
-            registry.pending -= 1;
-            registry.rejected += 1;
-            Ok(())
-        } else {
-            Err(ZktGuardianError::ProposalNotExpired.into())
-        }
+        require_eq!(self.status, ProposalStatus::Pending, ZktGuardianError::OnlyPendingProposal);
+        require_gte!(
+            self.timestamp + EXPIRE_DAYS,
+            clock.unix_timestamp,
+            ZktGuardianError::ProposalNotExpired,
+        );
+        registry.pending -= 1;
+        registry.rejected += 1;
+        
+        Ok(())
     }
 }

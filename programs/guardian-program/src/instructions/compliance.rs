@@ -56,7 +56,7 @@ pub struct RevokeCompliance<'info> {
             compliance_registry.key().as_ref(),
             target_account.key().as_ref(),
         ],
-        bump,
+        bump = compliance.bump,
     )]
     pub compliance: Account<'info, Compliance>,
 }

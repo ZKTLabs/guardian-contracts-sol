@@ -7,7 +7,8 @@ seeds = false
 skip-lint = false
 
 [programs.devnet]
-guardian_programs = "EFi3XHwSt8gkMP8DpMdF719YNtZYAqmazcn2gYWCWg7K"
+example-program = "3BxNMJ7VSjtVkrDLDY93D214MmQPBEx9LvTXu5gKxJkX"
+guardian_program = "EFi3XHwSt8gkMP8DpMdF719YNtZYAqmazcn2gYWCWg7K"
 
 [registry]
 url = "https://api.apr.dev"

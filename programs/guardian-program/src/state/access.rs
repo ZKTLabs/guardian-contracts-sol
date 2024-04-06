@@ -33,7 +33,7 @@ pub struct AccessRegistry {
 }
 
 impl AccessRegistry {
-    pub const SIZE: usize = core::mem::size_of::<Self>();
+    pub const SIZE: usize = std::mem::size_of::<Self>();
 
     pub(crate) fn assign_role(&mut self, role: Role) {
         match role {
@@ -62,5 +62,5 @@ pub struct Access {
 }
 
 impl Access {
-    pub const SIZE: usize = core::mem::size_of::<Self>();
+    pub const SIZE: usize = std::mem::size_of::<Self>();
 }

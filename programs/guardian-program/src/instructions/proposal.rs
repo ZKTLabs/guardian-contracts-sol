@@ -1,4 +1,4 @@
-use anchor_lang::{prelude::*, Key};
+use anchor_lang::{prelude::*, solana_program::clock::UnixTimestamp, Key};
 
 use crate::{
     state::{
@@ -36,6 +36,18 @@ pub(crate) fn _init_proposal_registry(ctx: Context<InitProposalRegistry>) -> Res
     Ok(())
 }
 
+#[event]
+pub struct CreateProposalEvent {
+    pub speaker: Pubkey,
+    pub access_registry: Pubkey,
+    pub proposal_registry: Pubkey,
+    pub proposal: Pubkey,
+    pub is_whitelist: bool,
+    pub timestamp: UnixTimestamp,
+    pub guardians: u32,
+}
+
+#[event_cpi]
 #[derive(Accounts)]
 #[instruction(description: String, is_whitelist: bool)]
 pub struct CreateProposal<'info> {
@@ -78,6 +90,16 @@ pub(crate) fn _create_proposal(
         ctx.accounts.access_registry.guardians,
     )?;
     ctx.accounts.proposal.set_inner(proposal);
+    
+    emit_cpi!(CreateProposalEvent {
+        speaker: ctx.accounts.speaker.key(),
+        access_registry: ctx.accounts.access_registry.key(),
+        proposal_registry: proposal_registry_key,
+        proposal: ctx.accounts.proposal.key(),
+        is_whitelist,
+        timestamp: ctx.accounts.clock.unix_timestamp,
+        guardians: ctx.accounts.access_registry.guardians,
+    });
 
     Ok(())
 }
@@ -167,14 +189,15 @@ macro_rules! impl_execute_proposal {
                 ctx: Context<[<ExecuteProposal $num>]>,
             ) -> Result<()> {
                 ctx.accounts.compliance_registry.register(ctx.accounts.proposal.is_whitelist);
-
-                let compliance = Compliance::new(
-                    ctx.accounts.payer.key(),
-                    ctx.accounts.proposal.key(),
-                    &ctx.accounts.proposal,
-                );
+                
                 $(
-                    ctx.accounts.[<compliance_ $idx>].set_inner(compliance.clone());
+                    let compliance = Compliance::new(
+                        ctx.bumps.[<compliance_ $idx>],
+                        ctx.accounts.payer.key(),
+                        ctx.accounts.proposal.key(),
+                        &ctx.accounts.proposal,
+                    );
+                    ctx.accounts.[<compliance_ $idx>].set_inner(compliance);
                 )+
 
                 Ok(())

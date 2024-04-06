@@ -10,7 +10,7 @@ pub struct ComplianceRegistry {
 }
 
 impl ComplianceRegistry {
-    pub const SIZE: usize = core::mem::size_of::<Self>();
+    pub const SIZE: usize = std::mem::size_of::<Self>();
     
     pub(crate) fn register(&mut self, is_whitelist: bool) {
         if is_whitelist {
@@ -31,6 +31,7 @@ impl ComplianceRegistry {
 
 #[account]
 pub struct Compliance {
+    pub bump: u8,
     pub payer: Pubkey,
     pub proposal: Pubkey,
     pub speaker: Pubkey,
@@ -39,10 +40,16 @@ pub struct Compliance {
 }
 
 impl Compliance {
-    pub const SIZE: usize = 32 + 32 + 32 + 1 + 256;
+    pub const SIZE: usize = 1 + 32 + 32 + 32 + 1 + 256;
 
-    pub(crate) fn new(payer: Pubkey, proposal_key: Pubkey, proposal: &Proposal) -> Self {
+    pub(crate) fn new(
+        bump: u8,
+        payer: Pubkey,
+        proposal_key: Pubkey,
+        proposal: &Proposal,
+    ) -> Self {
         Self {
+            bump,
             payer,
             proposal: proposal_key,
             speaker: proposal.speaker,
